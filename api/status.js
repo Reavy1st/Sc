@@ -1,45 +1,52 @@
-// Memori sementara untuk menyimpan status terbaru di Vercel Serverless
-let globalState = {
-    username: "Menunggu Delta...",
+// Global memory buffer
+let lastReceivedData = {
+    connected: false,
+    username: "Disconnected",
     userId: 0,
     moneyPerSec: "$0/s",
-    speed: 16,
+    speed: 0,
     totalEggs: 0,
     eggsList: [],
+    lastPingTimestamp: 0,
     lastUpdated: "Belum Ada Data"
 };
 
 export default function handler(req, res) {
-    // CORS Header agar Delta Executor bisa mengirim request tanpa terblokir
-    res.setHeader('Access-Control-Allow-Credentials', true);
+    // CORS Header Lengkap agar Delta Executor tidak di-block
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-    res.setHeader(
-        'Access-Control-Allow-Headers',
-        'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
-    );
+    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,POST');
+    res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
 
     if (req.method === 'OPTIONS') {
-        res.status(200).end();
-        return;
+        return res.status(200).end();
     }
+
+    const currentTime = Date.now();
 
     if (req.method === 'POST') {
         try {
-            const data = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-            globalState = {
-                ...data,
+            const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+            lastReceivedData = {
+                ...body,
+                connected: true,
+                lastPingTimestamp: currentTime,
                 lastUpdated: new Date().toLocaleTimeString('id-ID')
             };
-            return res.status(200).json({ status: "success", message: "Data terupdate!" });
+            return res.status(200).json({ status: "OK", connected: true });
         } catch (err) {
-            return res.status(400).json({ status: "error", message: "Invalid JSON Data" });
+            return res.status(400).json({ error: "Invalid Payload" });
         }
-    } 
-
-    if (req.method === 'GET') {
-        return res.status(200).json(globalState);
     }
 
-    return res.status(45)
+    if (req.method === 'GET') {
+        // Jika tidak ada ping dalam 5 detik terakhir, anggap Disconnected
+        const isStillConnected = (currentTime - lastReceivedData.lastPingTimestamp) < 5000;
+        return res.status(200).json({
+            ...lastReceivedData,
+            connected: isStillConnected
+        });
+    }
+
+    return res.status(405).end();
 }

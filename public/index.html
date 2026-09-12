@@ -3,240 +3,217 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Steal an Egg - iOS Status Dashboard</title>
+    <title>Steal an Egg - iOS 18 Control Center</title>
+    <!-- Tailwind CSS & Lucide Icons -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-
+        @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700;800&display=swap');
         body {
-            background: #000000;
-            color: #ffffff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+            background-color: #000000;
+            background-image: radial-gradient(circle at 50% 0%, #1e1b4b 0%, #000000 70%);
             min-height: 100vh;
-            padding: 16px;
         }
-
-        .ios-container {
-            width: 100%;
-            max-width: 420px;
-            background: rgba(25, 25, 25, 0.75);
-            backdrop-filter: blur(40px) saturate(180%);
-            -webkit-backdrop-filter: blur(40px) saturate(180%);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 36px;
-            padding: 24px;
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8);
+        .ios-blur {
+            background: rgba(30, 30, 30, 0.65);
+            backdrop-filter: blur(40px) saturate(190%);
+            -webkit-backdrop-filter: blur(40px) saturate(190%);
+            border: 1px solid rgba(255, 255, 255, 0.12);
         }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .header h1 {
-            font-size: 20px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-            background: linear-gradient(135deg, #fff 30%, #a1a1a6 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .live-badge {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(52, 199, 89, 0.15);
-            border: 1px solid rgba(52, 199, 89, 0.3);
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            color: #34c759;
-            font-weight: 600;
-        }
-
-        .pulse-dot {
-            width: 8px;
-            height: 8px;
-            background: #34c759;
-            border-radius: 50%;
-            box-shadow: 0 0 8px #34c759;
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(0.95); opacity: 0.8; }
-            50% { transform: scale(1.2); opacity: 1; }
-            100% { transform: scale(0.95); opacity: 0.8; }
-        }
-
-        .grid-stats {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin-bottom: 16px;
-        }
-
-        .widget {
-            background: rgba(45, 45, 45, 0.5);
+        .ios-card {
+            background: rgba(45, 45, 45, 0.4);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 20px;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
+            backdrop-filter: blur(20px);
         }
-
-        .widget-full {
-            grid-column: span 2;
+        .ios-btn {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
-
-        .widget-label {
-            font-size: 12px;
-            color: #8e8e93;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 6px;
-        }
-
-        .widget-val {
-            font-size: 22px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-        }
-
-        .val-money { color: #30d158; }
-        .val-speed { color: #0a84ff; }
-        .val-egg { color: #ffd60a; }
-
-        .egg-list-box {
-            background: rgba(45, 45, 45, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 20px;
-            padding: 16px;
-            margin-top: 12px;
-        }
-
-        .egg-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .egg-item:last-child { border-bottom: none; }
-
-        .egg-name { font-weight: 600; font-size: 14px; }
-        .rarity-badge {
-            font-size: 11px;
-            font-weight: 700;
-            padding: 3px 8px;
-            border-radius: 8px;
-            text-transform: uppercase;
-        }
-
-        /* iOS Style Rarity Colors */
-        .rarity-Common { background: rgba(142, 142, 147, 0.2); color: #8e8e93; }
-        .rarity-Rare { background: rgba(10, 132, 255, 0.2); color: #0a84ff; }
-        .rarity-Epic { background: rgba(191, 90, 242, 0.2); color: #bf5af2; }
-        .rarity-Legendary { background: rgba(255, 159, 10, 0.2); color: #ff9f0a; }
-        .rarity-Mythic { background: rgba(255, 69, 58, 0.2); color: #ff453a; }
-        .rarity-Cosmic { background: rgba(100, 210, 255, 0.2); color: #64d2ff; }
-        .rarity-Divine { background: rgba(255, 214, 10, 0.3); color: #ffd60a; text-shadow: 0 0 5px #ffd60a; }
-
-        .footer-time {
-            text-align: center;
-            font-size: 11px;
-            color: #636366;
-            margin-top: 16px;
+        .ios-btn:active {
+            transform: scale(0.92);
         }
     </style>
 </head>
-<body>
+<body class="flex justify-center items-center p-4">
 
-    <div class="ios-container">
-        <div class="header">
-            <h1>Steal an Egg Live</h1>
-            <div class="live-badge">
-                <div class="pulse-dot"></div>
-                LIVE
+    <div class="w-full max-w-md ios-blur rounded-[42px] p-6 shadow-2xl text-white relative overflow-hidden">
+        
+        <!-- Top Status Bar / Connection Pill -->
+        <div class="flex justify-between items-center mb-6">
+            <div class="flex items-center gap-2">
+                <div id="status-pill" class="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all bg-red-500/20 text-red-400 border border-red-500/30">
+                    <span id="status-dot" class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                    <span id="status-text">DISCONNECTED</span>
+                </div>
+            </div>
+            <span class="text-xs text-zinc-400 font-medium" id="last-ping">Last sync: -</span>
+        </div>
+
+        <!-- Header Title -->
+        <div class="mb-6">
+            <h1 class="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-white via-zinc-200 to-zinc-500 bg-clip-text text-transparent">
+                Steal an Egg Dashboard
+            </h1>
+            <p class="text-xs text-zinc-400 mt-1">iOS 18 Monitor Remote Terminal</p>
+        </div>
+
+        <!-- User Profile Widget -->
+        <div class="ios-card rounded-2xl p-4 mb-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center font-bold text-lg shadow-lg">
+                    <i data-lucide="user"></i>
+                </div>
+                <div>
+                    <h2 id="username" class="font-bold text-base text-zinc-100">Menunggu Delta...</h2>
+                    <p id="userid" class="text-xs text-zinc-400">ID: 0</p>
+                </div>
+            </div>
+            <button onclick="refreshData()" class="ios-btn p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-zinc-200">
+                <i data-lucide="rotate-cw" class="w-4 h-4"></i>
+            </button>
+        </div>
+
+        <!-- Primary Stats Grid (Money/s, WalkSpeed) -->
+        <div class="grid grid-cols-2 gap-3 mb-4">
+            <div class="ios-card rounded-2xl p-4 flex flex-col justify-between h-28 border-l-4 border-emerald-500">
+                <div class="flex items-center justify-between text-zinc-400">
+                    <span class="text-xs font-semibold uppercase tracking-wider">Money / s</span>
+                    <i data-lucide="dollar-sign" class="w-4 h-4 text-emerald-400"></i>
+                </div>
+                <div id="money-sec" class="text-xl font-extrabold text-emerald-400">$0/s</div>
+            </div>
+
+            <div class="ios-card rounded-2xl p-4 flex flex-col justify-between h-28 border-l-4 border-blue-500">
+                <div class="flex items-center justify-between text-zinc-400">
+                    <span class="text-xs font-semibold uppercase tracking-wider">WalkSpeed</span>
+                    <i data-lucide="zap" class="w-4 h-4 text-blue-400"></i>
+                </div>
+                <div id="speed" class="text-2xl font-extrabold text-blue-400">0</div>
             </div>
         </div>
 
-        <div class="grid-stats">
-            <div class="widget widget-full">
-                <div class="widget-label">Player Status</div>
-                <div class="widget-val" id="player-name">Loading...</div>
-            </div>
-
-            <div class="widget">
-                <div class="widget-label">Money / Sec</div>
-                <div class="widget-val val-money" id="money-sec">$0/s</div>
-            </div>
-
-            <div class="widget">
-                <div class="widget-label">WalkSpeed</div>
-                <div class="widget-val val-speed" id="speed-val">0</div>
-            </div>
-
-            <div class="widget widget-full">
-                <div class="widget-label">Total Egg / Pet</div>
-                <div class="widget-val val-egg" id="total-egg">0 Eggs</div>
-            </div>
+        <!-- Control Center Quick Action Buttons -->
+        <div class="grid grid-cols-4 gap-2 mb-6">
+            <button onclick="toggleSound()" class="ios-btn ios-card p-3 rounded-2xl flex flex-col items-center justify-center gap-1 hover:bg-white/10">
+                <i data-lucide="volume-2" id="icon-sound" class="w-5 h-5 text-indigo-400"></i>
+                <span class="text-[10px] text-zinc-300 font-medium">Sound</span>
+            </button>
+            <button onclick="copyVercelUrl()" class="ios-btn ios-card p-3 rounded-2xl flex flex-col items-center justify-center gap-1 hover:bg-white/10">
+                <i data-lucide="link" class="w-5 h-5 text-sky-400"></i>
+                <span class="text-[10px] text-zinc-300 font-medium">Copy API</span>
+            </button>
+            <button onclick="clearLogs()" class="ios-btn ios-card p-3 rounded-2xl flex flex-col items-center justify-center gap-1 hover:bg-white/10">
+                <i data-lucide="trash-2" class="w-5 h-5 text-rose-400"></i>
+                <span class="text-[10px] text-zinc-300 font-medium">Reset UI</span>
+            </button>
+            <button onclick="toggleAutoRefresh()" id="btn-auto" class="ios-btn ios-card p-3 rounded-2xl flex flex-col items-center justify-center gap-1 bg-indigo-600/40 border-indigo-500/50">
+                <i data-lucide="refresh-cw" class="w-5 h-5 text-indigo-300"></i>
+                <span class="text-[10px] text-zinc-200 font-medium">Live On</span>
+            </button>
         </div>
 
-        <div class="egg-list-box">
-            <div class="widget-label" style="margin-bottom: 10px;">Detected Eggs & Rarities</div>
-            <div id="egg-container">
-                <div style="font-size: 13px; color: #636366; text-align: center; padding: 10px;">Belum Ada Egg Terdeteksi</div>
+        <!-- Egg Collection List -->
+        <div class="ios-card rounded-2xl p-4">
+            <div class="flex justify-between items-center mb-3">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="egg" class="w-4 h-4 text-amber-400"></i>
+                    <span class="text-xs font-bold uppercase tracking-wider text-zinc-300">Egg & Rarity Inventory</span>
+                </div>
+                <span id="total-egg" class="text-xs bg-amber-500/20 text-amber-300 font-bold px-2 py-0.5 rounded-full border border-amber-500/30">0 Eggs</span>
+            </div>
+
+            <div id="egg-container" class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                <div class="text-center text-xs text-zinc-500 py-6">Menunggu Eksekusi Script di Roblox...</div>
             </div>
         </div>
-
-        <div class="footer-time" id="last-update">Update Terakhir: -</div>
     </div>
 
     <script>
-        async function fetchStatus() {
+        lucide.createIcons();
+        let autoRefresh = true;
+        let soundEnabled = true;
+
+        const rarityColors = {
+            'Common': 'bg-zinc-500/20 text-zinc-400 border-zinc-500/30',
+            'Rare': 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+            'Epic': 'bg-purple-500/20 text-purple-400 border-purple-500/30',
+            'Legendary': 'bg-amber-500/20 text-amber-400 border-amber-500/30',
+            'Mythic': 'bg-rose-500/20 text-rose-400 border-rose-500/30',
+            'Cosmic': 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
+            'Divine': 'bg-yellow-400/30 text-yellow-300 border-yellow-400/50'
+        };
+
+        async function refreshData() {
             try {
-                const response = await fetch('/api/status');
-                const data = await response.json();
+                const res = await fetch('/api/status');
+                const data = await res.json();
 
-                document.getElementById('player-name').innerText = data.username || "N/A";
-                document.getElementById('money-sec').innerText = data.moneyPerSec || "$0/s";
-                document.getElementById('speed-val').innerText = data.speed || 0;
-                document.getElementById('total-egg').innerText = (data.totalEggs || 0) + " Eggs";
-                document.getElementById('last-update').innerText = "Update Terakhir: " + (data.lastUpdated || "-");
+                // Connectivity status update
+                const pill = document.getElementById('status-pill');
+                const dot = document.getElementById('status-dot');
+                const text = document.getElementById('status-text');
 
-                const container = document.getElementById('egg-container');
-                if (data.eggsList && data.eggsList.length > 0) {
-                    container.innerHTML = data.eggsList.map(egg => `
-                        <div class="egg-item">
-                            <span class="egg-name">🥚 ${egg.name}</span>
-                            <span class="rarity-badge rarity-${egg.rarity}">${egg.rarity}</span>
-                        </div>
-                    `).join('');
+                if (data.connected) {
+                    pill.className = "flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+                    dot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
+                    text.innerText = "CONNECTED";
                 } else {
-                    container.innerHTML = '<div style="font-size: 13px; color: #636366; text-align: center; padding: 10px;">Tidak Ada Egg Tercuri/Diinventori</div>';
+                    pill.className = "flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all bg-red-500/20 text-red-400 border border-red-500/30";
+                    dot.className = "w-2 h-2 rounded-full bg-red-500 animate-pulse";
+                    text.innerText = "DISCONNECTED";
                 }
-            } catch (err) {
-                console.log("Fetch Error: ", err);
+
+                document.getElementById('username').innerText = data.username || "Offline";
+                document.getElementById('userid').innerText = "ID: " + (data.userId || "0");
+                document.getElementById('money-sec').innerText = data.moneyPerSec || "$0/s";
+                document.getElementById('speed').innerText = data.speed || "0";
+                document.getElementById('total-egg').innerText = (data.totalEggs || 0) + " Eggs";
+                document.getElementById('last-ping').innerText = "Sync: " + (data.lastUpdated || "-");
+
+                const eggContainer = document.getElementById('egg-container');
+                if (data.eggsList && data.eggsList.length > 0) {
+                    eggContainer.innerHTML = data.eggsList.map(egg => {
+                        const styleClass = rarityColors[egg.rarity] || rarityColors['Common'];
+                        return `
+                            <div class="flex items-center justify-between p-2.5 rounded-xl bg-white/5 border border-white/5">
+                                <span class="text-xs font-semibold text-zinc-200">🥚 ${egg.name}</span>
+                                <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-md border ${styleClass}">${egg.rarity}</span>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    eggContainer.innerHTML = `<div class="text-center text-xs text-zinc-500 py-6">Tidak Ada Egg Tercuri/Terdeteksi</div>`;
+                }
+            } catch (e) {
+                console.error("Connection Error", e);
             }
         }
 
-        // Fetch data secara real-time di UI
-        setInterval(fetchStatus, 500);
-        fetchStatus();
+        function copyVercelUrl() {
+            navigator.clipboard.writeText(window.location.origin + "/api/status");
+            alert("URL API Berhasil Di-copy:\n" + window.location.origin + "/api/status");
+        }
+
+        function toggleAutoRefresh() {
+            autoRefresh = !autoRefresh;
+            const btn = document.getElementById('btn-auto');
+            btn.className = autoRefresh 
+                ? "ios-btn ios-card p-3 rounded-2xl flex flex-col items-center justify-center gap-1 bg-indigo-600/40 border-indigo-500/50"
+                : "ios-btn ios-card p-3 rounded-2xl flex flex-col items-center justify-center gap-1 opacity-50";
+        }
+
+        function clearLogs() {
+            document.getElementById('username').innerText = "Reset Done";
+            document.getElementById('money-sec').innerText = "$0/s";
+            document.getElementById('speed').innerText = "0";
+            document.getElementById('total-egg').innerText = "0 Eggs";
+            document.getElementById('egg-container').innerHTML = `<div class="text-center text-xs text-zinc-500 py-6">UI Resetted</div>`;
+        }
+
+        setInterval(() => {
+            if (autoRefresh) refreshData();
+        }, 1000);
+        refreshData();
     </script>
 </body>
 </html>

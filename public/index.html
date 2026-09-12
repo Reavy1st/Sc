@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Steal an Egg - iOS Status Dashboard</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: #000000;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 16px;
+        }
+
+        .ios-container {
+            width: 100%;
+            max-width: 420px;
+            background: rgba(25, 25, 25, 0.75);
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 36px;
+            padding: 24px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #fff 30%, #a1a1a6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .live-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(52, 199, 89, 0.15);
+            border: 1px solid rgba(52, 199, 89, 0.3);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: #34c759;
+            font-weight: 600;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: #34c759;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #34c759;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+
+        .grid-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .widget {
+            background: rgba(45, 45, 45, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .widget-full {
+            grid-column: span 2;
+        }
+
+        .widget-label {
+            font-size: 12px;
+            color: #8e8e93;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .widget-val {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .val-money { color: #30d158; }
+        .val-speed { color: #0a84ff; }
+        .val-egg { color: #ffd60a; }
+
+        .egg-list-box {
+            background: rgba(45, 45, 45, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 16px;
+            margin-top: 12px;
+        }
+
+        .egg-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .egg-item:last-child { border-bottom: none; }
+
+        .egg-name { font-weight: 600; font-size: 14px; }
+        .rarity-badge {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 8px;
+            text-transform: uppercase;
+        }
+
+        /* iOS Style Rarity Colors */
+        .rarity-Common { background: rgba(142, 142, 147, 0.2); color: #8e8e93; }
+        .rarity-Rare { background: rgba(10, 132, 255, 0.2); color: #0a84ff; }
+        .rarity-Epic { background: rgba(191, 90, 242, 0.2); color: #bf5af2; }
+        .rarity-Legendary { background: rgba(255, 159, 10, 0.2); color: #ff9f0a; }
+        .rarity-Mythic { background: rgba(255, 69, 58, 0.2); color: #ff453a; }
+        .rarity-Cosmic { background: rgba(100, 210, 255, 0.2); color: #64d2ff; }
+        .rarity-Divine { background: rgba(255, 214, 10, 0.3); color: #ffd60a; text-shadow: 0 0 5px #ffd60a; }
+
+        .footer-time {
+            text-align: center;
+            font-size: 11px;
+            color: #636366;
+            margin-top: 16px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ios-container">
+        <div class="header">
+            <h1>Steal an Egg Live</h1>
+            <div class="live-badge">
+                <div class="pulse-dot"></div>
+                LIVE
+            </div>
+        </div>
+
+        <div class="grid-stats">
+            <div class="widget widget-full">
+                <div class="widget-label">Player Status</div>
+                <div class="widget-val" id="player-name">Loading...</div>
+            </div>
+
+            <div class="widget">
+                <div class="widget-label">Money / Sec</div>
+                <div class="widget-val val-money" id="money-sec">$0/s</div>
+            </div>
+
+            <div class="widget">
+                <div class="widget-label">WalkSpeed</div>
+                <div class="widget-val val-speed" id="speed-val">0</div>
+            </div>
+
+            <div class="widget widget-full">
+                <div class="widget-label">Total Egg / Pet</div>
+                <div class="widget-val val-egg" id="total-egg">0 Eggs</div>
+            </div>
+        </div>
+
+        <div class="egg-list-box">
+            <div class="widget-label" style="margin-bottom: 10px;">Detected Eggs & Rarities</div>
+            <div id="egg-container">
+                <div style="font-size: 13px; color: #636366; text-align: center; padding: 10px;">Belum Ada Egg Terdeteksi</div>
+            </div>
+        </div>
+
+        <div class="footer-time" id="last-update">Update Terakhir: -</div>
+    </div>
+
+    <script>
+        async function fetchStatus() {
+            try {
+                const response = await fetch('/api/status');
+                const data = await response.json();
+
+                document.getElementById('player-name').innerText = data.username || "N/A";
+                document.getElementById('money-sec').innerText = data.moneyPerSec || "$0/s";
+                document.getElementById('speed-val').innerText = data.speed || 0;
+                document.getElementById('total-egg').innerText = (data.totalEggs || 0) + " Eggs";
+                document.getElementById('last-update').innerText = "Update Terakhir: " + (data.lastUpdated || "-");
+
+                const container = document.getElementById('egg-container');
+                if (data.eggsList && data.eggsList.length > 0) {
+                    container.innerHTML = data.eggsList.map(egg => `
+                        <div class="egg-item">
+                            <span class="egg-name">🥚 ${egg.name}</span>
+                            <span class="rarity-badge rarity-${egg.rarity}">${egg.rarity}</span>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = '<div style="font-size: 13px; color: #636366; text-align: center; padding: 10px;">Tidak Ada Egg Tercuri/Diinventori</div>';
+                }
+            } catch (err) {
+                console.log("Fetch Error: ", err);
+            }
+        }
+
+        // Fetch data secara real-time di UI
+        setInterval(fetchStatus, 500);
+        fetchStatus();
+    </script>
+</body>
+</html>
